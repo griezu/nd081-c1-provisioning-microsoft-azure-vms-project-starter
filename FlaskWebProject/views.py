@@ -88,7 +88,7 @@ def authorized():
         # TODO: Acquire a token from a built msal app, along with the appropriate redirect URI
         result = _build_msal_app(cache=cache).acquire_token_by_authorization_code(
             request.args['code'],
-            scopes=app_config.SCOPE,
+            scopes=app.config["SCOPE"]
             redirect_uri=url_for("authorized", _external=True))
 
         if "error" in result:
@@ -129,8 +129,8 @@ def _save_cache(cache):
 def _build_msal_app(cache=None, authority=None):
     # TODO: Return a ConfidentialClientApplication
     return msal.ConfidentialClientApplication(
-        app_config.CLIENT_ID, authority=authority or app_config.AUTHORITY,
-        client_credential=app_config.CLIENT_SECRET, token_cache=cache)
+        app.config['CLIENT_ID'], authority=authority or app.config['AUTHORITY'],
+        client_credential=app.config['CLIENT_SECRET'], token_cache=cache)
 
 def _build_auth_url(authority=None, scopes=None, state=None):
     # TODO: Return the full Auth Request URL with appropriate Redirect URI
