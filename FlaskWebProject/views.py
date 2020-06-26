@@ -12,6 +12,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 from FlaskWebProject.models import User, Post
 import msal
 import uuid
+import logging
 
 imageSourceUrl = 'https://'+ app.config['BLOB_ACCOUNT']  + '.blob.core.windows.net/' + app.config['BLOB_CONTAINER']  + '/'
 
@@ -60,6 +61,7 @@ def post(id):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+
     if current_user.is_authenticated:
         return redirect(url_for('home'))
     form = LoginForm()
@@ -67,8 +69,10 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
             flash('Invalid username or password')
+            logging.info('%s failed to log in', form.username.data)  
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
+        logging.info('%s logged in successfully', form.username.data)
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('home')
@@ -79,6 +83,7 @@ def login():
 
 @app.route(Config.REDIRECT_PATH)  # Its absolute URL must match your app's redirect_uri set in AAD
 def authorized():
+
     if request.args.get('state') != session.get("state"):
         return redirect(url_for("home"))  # No-OP. Goes back to Index page
     if "error" in request.args:  # Authentication/Authorization failure
@@ -88,8 +93,9 @@ def authorized():
         # TODO: Acquire a token from a built msal app, along with the appropriate redirect URI
         result = _build_msal_app(cache=cache).acquire_token_by_authorization_code(
             request.args['code'],
-            scopes=app.config["SCOPE"]
-            redirect_uri=url_for("authorized", _external=True))
+            scopes=app.config['SCOPE'],
+            redirect_uri='https://cmsudacity.azurewebsites.net/getAToken')
+
 
         if "error" in result:
             return render_template("auth_error.html", result=result)
@@ -137,4 +143,4 @@ def _build_auth_url(authority=None, scopes=None, state=None):
     return _build_msal_app(authority=authority).get_authorization_request_url(
         scopes or [],
         state=state or str(uuid.uuid4()),
-        redirect_uri=url_for("authorized", _external=True))
+        redirect_uri='https://cmsudacity.azurewebsites.net/getAToken')

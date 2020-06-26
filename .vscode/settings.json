@@ -29,5 +29,7 @@
         "env.bak{,/**}",
         "venv.bak{,/**}",
         ".vscode{,/**}"
-    ]
+    ],
+    "appService.defaultWebAppToDeploy": "/subscriptions/020c51dd-3216-4acc-b64e-56f13665eeea/resourceGroups/CMSrs/providers/Microsoft.Web/sites/cmsudacity",
+    "appService.deploySubpath": "."
 }
